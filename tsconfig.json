@@ -6,10 +6,10 @@
     "module": "commonjs",
     "baseUrl": ".",
     "outDir": "dist",
+    "rootDir": "lib",
     "declaration": true
   },
   "include": [
-    "lib/*.ts",
-    "test/*.ts"
+    "lib/*.ts"
   ]
 }

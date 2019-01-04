@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Format floats as decimals as accurately as possible.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "Dmitry S, Grist Labs",
   "license": "Apache-2.0",
   "scripts": {
@@ -10,6 +11,23 @@
     "watch": "tsc -w",
     "test": "mocha 'test/**/*.{js,ts}'"
   },
+  "files": [
+    "dist/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dsagal/decifloat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dsagal/decifloat/issues"
+  },
+  "homepage": "https://github.com/dsagal/decifloat#readme",
+  "keywords": [
+    "floats",
+    "decimals",
+    "format",
+    "numeral"
+  ],
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
