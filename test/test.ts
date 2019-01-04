@@ -5,54 +5,54 @@ describe('DeciFloat', () => {
   describe('constructor', () => {
     it('should extract whole part and decimal exponent', () => {
       function parse(num: number) { return {...new DeciFloat(num)}; }
-      assert.deepEqual(parse(0.67), {num: 0.67, mantissa: '6.7', exp: -1});
-      assert.deepEqual(parse(-0.67), {num: -0.67, mantissa: '-6.7', exp: -1});
+      assert.deepEqual(parse(0.67), {num: 0.67, mantissa: '0.67', exp: 0});
+      assert.deepEqual(parse(-0.67), {num: -0.67, mantissa: '-0.67', exp: 0});
       assert.deepEqual(parse(0.0000000067), {num: 0.0000000067, mantissa: '6.7', exp: -9});
       assert.deepEqual(parse(-0.0000000067), {num: -0.0000000067, mantissa: '-6.7', exp: -9});
-      assert.deepEqual(parse(1234567890), {num: 1234567890, mantissa: '1.23456789', exp: 9});
-      assert.deepEqual(parse(-1234567890), {num: -1234567890, mantissa: '-1.23456789', exp: 9});
+      assert.deepEqual(parse(1234567890), {num: 1234567890, mantissa: '1234567890', exp: 0});
+      assert.deepEqual(parse(-1234567890), {num: -1234567890, mantissa: '-1234567890', exp: 0});
       assert.deepEqual(parse(0), {num: 0, mantissa: '0', exp: 0});
       assert.deepEqual(parse(1), {num: 1, mantissa: '1', exp: 0});
       assert.deepEqual(parse(-1), {num: -1, mantissa: '-1', exp: 0});
       assert.deepEqual(parse(9), {num: 9, mantissa: '9', exp: 0});
-      assert.deepEqual(parse(0.0009), {num: 0.0009, mantissa: '9', exp: -4});
-      assert.deepEqual(parse(9000), {num: 9000, mantissa: '9', exp: 3});
+      assert.deepEqual(parse(0.0009), {num: 0.0009, mantissa: '0.0009', exp: 0});
+      assert.deepEqual(parse(9000), {num: 9000, mantissa: '9000', exp: 0});
       assert.deepEqual(parse(-121e+25), {num: -121e+25, mantissa: '-1.21', exp: 27});
       assert.deepEqual(parse(-121e-25), {num: -121e-25, mantissa: '-1.21', exp: -23});
-      assert.deepEqual(parse(NaN), {num: NaN, mantissa: null, exp: NaN});
-      assert.deepEqual(parse(Infinity), {num: Infinity, mantissa: null, exp: NaN});
-      assert.deepEqual(parse(-Infinity), {num: -Infinity, mantissa: null, exp: NaN});
+      assert.deepEqual(parse(NaN), {num: NaN, mantissa: 'NaN', exp: 0});
+      assert.deepEqual(parse(Infinity), {num: Infinity, mantissa: 'Infinity', exp: 0});
+      assert.deepEqual(parse(-Infinity), {num: -Infinity, mantissa: '-Infinity', exp: 0});
       const maxSafeInt = 9007199254740991, minSafeInt = -9007199254740991;
-      assert.deepEqual(parse(maxSafeInt), {num: maxSafeInt, mantissa: '9.007199254740991', exp: 15});
-      assert.deepEqual(parse(minSafeInt), {num: minSafeInt, mantissa: '-9.007199254740991', exp: 15});
+      assert.deepEqual(parse(maxSafeInt), {num: maxSafeInt, mantissa: '9007199254740991', exp: 0});
+      assert.deepEqual(parse(minSafeInt), {num: minSafeInt, mantissa: '-9007199254740991', exp: 0});
     });
   });
 
   describe('usefulDecimals', () => {
     it('should return number of meaningful digits after decimal point', () => {
       function decimals(num: number) { return new DeciFloat(num).usefulDecimals(); }
-      assert.deepEqual(decimals(0.67), 2);
-      assert.deepEqual(decimals(-0.67), 2);
-      assert.deepEqual(decimals(0.615), 3);
-      assert.deepEqual(decimals(1.005), 3);
-      assert.deepEqual(decimals(0.0000000067), 10);
-      assert.deepEqual(decimals(-0.0000000067), 10);
-      assert.deepEqual(decimals(1234567890), -1);
-      assert.deepEqual(decimals(-1234567890), -1);
-      assert.deepEqual(decimals(0), 0);
-      assert.deepEqual(decimals(1), 0);
-      assert.deepEqual(decimals(-1), 0);
-      assert.deepEqual(decimals(9), 0);
-      assert.deepEqual(decimals(0.0009), 4);
-      assert.deepEqual(decimals(9000), -3);
-      assert.deepEqual(decimals(-121e+25), -25);
-      assert.deepEqual(decimals(-121e-25), 25);
-      assert.deepEqual(decimals(NaN), 0);
-      assert.deepEqual(decimals(Infinity), 0);
-      assert.deepEqual(decimals(-Infinity), 0);
+      assert.strictEqual(decimals(0.67), 2);
+      assert.strictEqual(decimals(-0.67), 2);
+      assert.strictEqual(decimals(0.615), 3);
+      assert.strictEqual(decimals(1.005), 3);
+      assert.strictEqual(decimals(0.0000000067), 10);
+      assert.strictEqual(decimals(-0.0000000067), 10);
+      assert.strictEqual(decimals(1234567890), -1);
+      assert.strictEqual(decimals(-1234567890), -1);
+      assert.strictEqual(decimals(0), 0);
+      assert.strictEqual(decimals(1), 0);
+      assert.strictEqual(decimals(-1), 0);
+      assert.strictEqual(decimals(9), 0);
+      assert.strictEqual(decimals(0.0009), 4);
+      assert.strictEqual(decimals(9000), -3);
+      assert.strictEqual(decimals(-121e+25), -25);
+      assert.strictEqual(decimals(-121e-25), 25);
+      assert.strictEqual(decimals(NaN), 0);
+      assert.strictEqual(decimals(Infinity), 0);
+      assert.strictEqual(decimals(-Infinity), 0);
       const maxSafeInt = 9007199254740991, minSafeInt = -9007199254740991;
-      assert.deepEqual(decimals(maxSafeInt), 0);
-      assert.deepEqual(decimals(minSafeInt), 0);
+      assert.strictEqual(decimals(maxSafeInt), 0);
+      assert.strictEqual(decimals(minSafeInt), 0);
     });
   });
 

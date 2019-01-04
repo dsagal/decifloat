@@ -4,7 +4,7 @@
  */
 export class DeciFloat {
   // Note that we keep mantissa as a string for speed, because we don't need to parse it.
-  public mantissa!: string|null;      // null for values like NaN and Infinity.
+  public mantissa!: string;           // unchanged value for values like NaN and Infinity.
   public exp!: number;                // power of 10
   public num!: number;                // only used for values like NaN and Infinity.
 
@@ -24,17 +24,17 @@ export class DeciFloat {
    */
   public reset(num: number): void {
     this.num = num;
-    const str = num.toExponential();
+    const str = num.toString();
     const expIndex = str.indexOf('e');
-    this.mantissa = expIndex < 0 ? null : str.slice(0, expIndex);
-    this.exp = expIndex < 0 ? NaN : parseInt(str.slice(expIndex + 1), 10);
+    this.mantissa = expIndex < 0 ? str : str.slice(0, expIndex);
+    this.exp = expIndex < 0 ? 0 : parseInt(str.slice(expIndex + 1), 10);
   }
 
   /**
    * Returns the stored value as a regular number.
    */
   public value(): number {
-    return this.mantissa === null ? this.num : parseFloat(this.mantissa + 'e' + this.exp);
+    return isFinite(this.num) ? parseFloat(this.mantissa + 'e' + this.exp) : this.num;
   }
 
   /**
@@ -42,9 +42,16 @@ export class DeciFloat {
    * integer ending in zeroes, then returns a negative number for zeroes before the decimal point.
    */
   public usefulDecimals(): number {
-    if (this.mantissa === null) { return 0; }
     const dotIndex = this.mantissa.indexOf('.');
-    return (dotIndex >= 0 ? this.mantissa.length - dotIndex - 1 : 0) - this.exp;
+    if (dotIndex < 0) {
+      let last = this.mantissa.length - 1;
+      while (last > 0 && this.mantissa[last] === '0') {
+        --last;
+      }
+      return last + 1 - this.mantissa.length - this.exp;
+    } else {
+      return this.mantissa.length - dotIndex - 1 - this.exp;
+    }
   }
 
   /**
