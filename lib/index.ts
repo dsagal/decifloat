@@ -65,8 +65,8 @@ export class DeciFloat {
 /**
  * Returns formatted number with at least minDec and at most maxDec decimal digits after the decimal point.
  */
-export function toFixed(num: number, minDec: number, maxDec: number): string {
+export function toFixed(num: number, minDec: number, maxDec: number, roundingFunc = Math.round): string {
   const df = new DeciFloat(num);
-  df.round(maxDec);
+  df.round(maxDec, roundingFunc);
   return df.value().toFixed(Math.max(df.usefulDecimals(), minDec));
 }
