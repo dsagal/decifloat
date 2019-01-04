@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es3",
+    "strict": true,
+    "noUnusedLocals": true,
+    "module": "commonjs",
+    "baseUrl": ".",
+    "outDir": "dist",
+    "declaration": true
+  },
+  "include": [
+    "lib/*.ts",
+    "test/*.ts"
+  ]
+}

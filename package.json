@@ -1,0 +1,22 @@
+{
+  "name": "decifloat",
+  "version": "0.0.1",
+  "description": "Format floats as decimals as accurately as possible.",
+  "main": "dist/index.js",
+  "author": "Dmitry S, Grist Labs",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "mocha 'test/**/*.{js,ts}'"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.12.18",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
+  }
+}
