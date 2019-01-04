@@ -171,6 +171,14 @@ describe('DeciFloat', () => {
       assert.strictEqual(toFixed((4/3-1)*3-1,  0, 16), '-0.0000000000000002');
       assert.strictEqual(toFixed((4/3-1)*3-1,  0, 15), '0');
     });
+  });
+
+  describe("timing", () => {
+    before(function() {
+      if (!process.env.TIMING_TESTS) {
+        this.skip();
+      }
+    });
 
     function timeIt<T>(count: number, func: () => T) {
       const start = Date.now();

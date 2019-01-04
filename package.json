@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "mocha 'test/**/*.{js,ts}'"
+    "test": "mocha 'test/**/*.{js,ts}'",
+    "test-timing": "TIMING_TESTS=1 mocha 'test/**/*.{js,ts}'"
   },
   "files": [
     "dist/"
