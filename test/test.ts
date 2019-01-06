@@ -1,8 +1,10 @@
 import {assert} from 'chai';
-import {countTrailingZeroes, parseNumber, usefulDecimals, round, toFixed, stripTrailingZeroes} from '../lib';
+import {parseNumber, usefulDecimals, round, toFixed} from '../lib';
 
-describe('DeciFloat', () => {
-  describe('constructor', () => {
+describe('decifloat', () => {
+  const p = parseNumber;
+
+  describe('parseNumber', () => {
     it('should extract whole part and decimal exponent', () => {
       assert.deepEqual(parseNumber(0.67), {isFinite: true, num: 0.67, mantissa: '0.67', exp: 0});
       assert.deepEqual(parseNumber(-0.67), {isFinite: true, num: -0.67, mantissa: '-0.67', exp: 0});
@@ -27,9 +29,74 @@ describe('DeciFloat', () => {
     });
   });
 
+  describe('usefulDecimals', () => {
+    it('should return number of meaningful digits after decimal point', () => {
+      assert.strictEqual(usefulDecimals(p(0)), 0);
+      assert.strictEqual(usefulDecimals(p(0.67)), 2);
+      assert.strictEqual(usefulDecimals(p(-0.67)), 2);
+      assert.strictEqual(usefulDecimals(p(0.615000)), 3);
+      assert.strictEqual(usefulDecimals(p(1.005)), 3);
+      assert.strictEqual(usefulDecimals(p(0.0000000067)), 10);
+      assert.strictEqual(usefulDecimals(p(-0.0000000067)), 10);
+      assert.strictEqual(usefulDecimals(p(1234567890)), 0);
+      assert.strictEqual(usefulDecimals(p(-1234567890)), 0);
+      assert.strictEqual(usefulDecimals(p(0)), 0);
+      assert.strictEqual(usefulDecimals(p(1)), 0);
+      assert.strictEqual(usefulDecimals(p(-1)), 0);
+      assert.strictEqual(usefulDecimals(p(9)), 0);
+      assert.strictEqual(usefulDecimals(p(0.0009)), 4);
+      assert.strictEqual(usefulDecimals(p(9000)), 0);
+      assert.strictEqual(usefulDecimals(p(9000e-1)), 0);
+      assert.strictEqual(usefulDecimals(p(9000e-3)), 0);
+      assert.strictEqual(usefulDecimals(p(9000e-5)), 2);
+      assert.strictEqual(usefulDecimals(p(9000e-25)), 22);
+      assert.strictEqual(usefulDecimals(p(7e-8)), 8);
+      assert.strictEqual(usefulDecimals(p(-121e+25)), 0);
+      assert.strictEqual(usefulDecimals(p(-121e-25)), 25);
+      assert.strictEqual(usefulDecimals(p(NaN)), 0);
+      assert.strictEqual(usefulDecimals(p(Infinity)), 0);
+      assert.strictEqual(usefulDecimals(p(-Infinity)), 0);
+      const maxSafeInt = 9007199254740991, minSafeInt = -9007199254740991;
+      assert.strictEqual(usefulDecimals(p(maxSafeInt)), 0);
+      assert.strictEqual(usefulDecimals(p(minSafeInt)), 0);
+    });
+  });
+
+  describe('round', () => {
+    it('should round a number to a correct number of decimals', () => {
+      assert.strictEqual(round(p(1.005), 3), 1.005);
+      assert.strictEqual(round(p(1.005), 4), 1.005);
+      assert.strictEqual(round(p(1.005), 2), 1.01);
+      assert.strictEqual(round(p(1.005), 1), 1);
+      assert.strictEqual(round(p(1.005), 0), 1);
+
+      assert.strictEqual(round(p(0.615), 3), 0.615);
+      assert.strictEqual(round(p(0.615), 2), 0.62);
+      assert.strictEqual(round(p(0.615), 1), 0.6);
+      assert.strictEqual(round(p(0.61499999), 3), 0.615);
+
+      assert.strictEqual(round(p(0.615e-12), 15), 0.615e-12);
+      assert.strictEqual(round(p(0.615e-12), 14), 0.62e-12);
+      assert.strictEqual(round(p(0.615e-12), 13), 0.6e-12);
+      assert.strictEqual(round(p(0.615e-12), 12), 1e-12);
+      assert.strictEqual(round(p(0.615e-12), 11), 0);
+      assert.strictEqual(round(p(0.615e-12), 4), 0);
+
+      assert.strictEqual(round(p(-17e25), 5), -17e25);
+      assert.strictEqual(round(p(0.000000067), 8), 0.00000007);
+      assert.strictEqual(round(p(0), 3), 0);
+
+      assert.strictEqual(round(p(100.5), 1), 100.5);
+      assert.strictEqual(round(p(100.5), 0), 101);
+      // 1.005 is actually 1.004999..., which becomes visible in rounding when multiplied by 100.
+      assert.strictEqual(round(p((1.005*100)), 1), 100.5);
+      assert.strictEqual(round(p((1.005*100)), 0), 100);
+    });
+  });
+
   describe('toFixed', () => {
     it('should respect min/maxDecimals and round correctly', () => {
-      // Test cases from numeral.js
+      // Test cases mostly from numeral.js
       assert.strictEqual(toFixed(0, 0, 0),              '0');
       assert.strictEqual(toFixed(0, 2, 2),              '0.00');
       assert.strictEqual(toFixed(NaN, 1, 1),            'NaN');
@@ -113,72 +180,6 @@ describe('DeciFloat', () => {
     });
   });
 
-  describe('usefulDecimals', () => {
-    it('should return number of meaningful digits after decimal point', () => {
-      function decimals(num: number) { return usefulDecimals(parseNumber(num)); }
-      assert.strictEqual(decimals(0.67), 2);
-      assert.strictEqual(decimals(-0.67), 2);
-      assert.strictEqual(decimals(0.615), 3);
-      assert.strictEqual(decimals(1.005), 3);
-      assert.strictEqual(decimals(0.0000000067), 10);
-      assert.strictEqual(decimals(-0.0000000067), 10);
-      assert.strictEqual(decimals(1234567890), 0);
-      assert.strictEqual(decimals(-1234567890), 0);
-      assert.strictEqual(decimals(0), 0);
-      assert.strictEqual(decimals(1), 0);
-      assert.strictEqual(decimals(-1), 0);
-      assert.strictEqual(decimals(9), 0);
-      assert.strictEqual(decimals(0.0009), 4);
-      assert.strictEqual(decimals(9000), 0);
-      assert.strictEqual(decimals(9000e-1), 0);
-      assert.strictEqual(decimals(9000e-3), 0);
-      assert.strictEqual(decimals(9000e-5), 2);
-      assert.strictEqual(decimals(9000e-25), 22);
-      assert.strictEqual(decimals(7e-8), 8);
-      assert.strictEqual(decimals(-121e+25), 0);
-      assert.strictEqual(decimals(-121e-25), 25);
-      assert.strictEqual(decimals(NaN), 0);
-      assert.strictEqual(decimals(Infinity), 0);
-      assert.strictEqual(decimals(-Infinity), 0);
-      const maxSafeInt = 9007199254740991, minSafeInt = -9007199254740991;
-      assert.strictEqual(decimals(maxSafeInt), 0);
-      assert.strictEqual(decimals(minSafeInt), 0);
-    });
-  });
-
-  describe('round', () => {
-    it('should round a number to a correct number of decimals', () => {
-      function myRound(num: number, dec: number) { return round(parseNumber(num), dec); }
-      assert.strictEqual(toFixed(0.000000067, 1, 8), "0.00000007");
-      assert.strictEqual(myRound(1.005, 3), 1.005);
-      assert.strictEqual(myRound(1.005, 4), 1.005);
-      assert.strictEqual(myRound(1.005, 2), 1.01);
-      assert.strictEqual(myRound(1.005, 1), 1);
-      assert.strictEqual(myRound(1.005, 0), 1);
-
-      assert.strictEqual(myRound(0.615, 3), 0.615);
-      assert.strictEqual(myRound(0.615, 2), 0.62);
-      assert.strictEqual(myRound(0.615, 1), 0.6);
-      assert.strictEqual(myRound(0.61499999, 3), 0.615);
-
-      assert.strictEqual(myRound(0.615e-12, 15), 0.615e-12);
-      assert.strictEqual(myRound(0.615e-12, 14), 0.62e-12);
-      assert.strictEqual(myRound(0.615e-12, 13), 0.6e-12);
-      assert.strictEqual(myRound(0.615e-12, 12), 1e-12);
-      assert.strictEqual(myRound(0.615e-12, 11), 0);
-      assert.strictEqual(myRound(0.615e-12, 4), 0);
-
-      assert.strictEqual(myRound(-17e25, 5), -17e25);
-      assert.strictEqual(myRound(0.000000067, 8), 0.00000007);
-
-      assert.strictEqual(myRound(100.5, 1), 100.5);
-      assert.strictEqual(myRound(100.5, 0), 101);
-      // 1.005 is actually 1.004999..., which becomes visible in rounding when multiplied by 100.
-      assert.strictEqual(myRound((1.005*100), 1), 100.5);
-      assert.strictEqual(myRound((1.005*100), 0), 100);
-    });
-  });
-
   describe("timing", () => {
     before(function() {
       if (!process.env.TIMING_TESTS) {
@@ -196,77 +197,6 @@ describe('DeciFloat', () => {
       return {time, result};
     }
 
-    function report<T>(func: () => T, expected: T) {
-      const N = 1000000;
-      const res = timeIt(N, func);
-      console.log("time %s us ; code %s ; result %s", ((res.time / N) * 1000000).toFixed(3), func, res.result);
-      assert.deepEqual(res.result, expected);
-    }
-
-    it('some purely informational timings', function() {
-      this.timeout(10000);
-      report(() => (1.005).toString(), "1.005");
-      report(() => (0.000000000615).toString(), "6.15e-10")
-      report(() => (615000000000000000000).toString(), "615000000000000000000");
-      report(() => (1.005).toExponential(), "1.005e+0");
-      report(() => (0.000000000615).toExponential(), "6.15e-10")
-      report(() => (615000000000000000000).toExponential(), "6.15e+20")
-      report(() => (1.005).toFixed(5), "1.00500");
-      report(() => (0.000000000615).toFixed(5), "0.00000");
-      report(() => (615000000000000000000).toFixed(5), "615000000000000000000.00000")
-
-      // Example with rounding
-      report(() => toFixed(1.005, 2, 2), "1.01");
-      // Example with padding with padding with zeroes
-      report(() => toFixed(1.005, 5, 5), "1.00500");
-      // Example involving exponential-notation toString(), with rounding
-      report(() => toFixed(0.0000000000615, 12, 12), "0.000000000062");
-      // Example involving exponential-notation toString(), with padding
-      report(() => toFixed(0.0000000000615, 15, 15), "0.000000000061500");
-      // Example involving a very large number
-      report(() => toFixed(615000000000000000000, 0, 0), "615000000000000000000");
-      // Example involving a very large number, with padding.
-      report(() => toFixed(615000000000000000000, 3, 3), "615000000000000000000.000");
-
-      const str1 = "helloWorld";
-      const str2 = str1.toUpperCase();
-      report(() => str1 + "+" + str2, "helloWorld+HELLOWORLD");
-
-      // 13 trailing zeroes
-      const c = "1234567890000000000000";
-      report(() => countTrailingZeroes(c), 13);
-      report(() => c.length - c.search(/0*$/), 13);
-
-      const d = "123.56700000000";
-      report(() => stripTrailingZeroes(d, 6), "123.56700");
-      report(() => stripTrailingZeroes(d, 10), "123.567");
-      report(() => stripWithNewRE(d, 6), "123.56700");
-      report(() => stripWithNewRE(d, 10), "123.567");
-
-      function stripWithNewRE(s: string, maxToStrip: number) {
-        const optionalsRegExp = new RegExp('\\.?0{1,' + maxToStrip + '}$');
-        return s.replace(optionalsRegExp, '');
-      }
-
-      const df1 = parseNumber(1.005), df2 = parseNumber(1.005 * 100), df3 = parseNumber(-17e25),
-            df4 = parseNumber(9000), df5 = parseNumber(170000e-25), df6 = parseNumber(1.123e-25);
-
-      report(() => usefulDecimals(df1), 3);
-      report(() => usefulDecimals(df2), 14);
-      report(() => usefulDecimals(df3), 0);
-      report(() => usefulDecimals(df4), 0);
-      report(() => usefulDecimals(df5), 21);
-      report(() => usefulDecimals(df6), 28);
-
-      report(() => round(df1, 3), 1.005);
-      report(() => round(df1, 4), 1.005);
-      report(() => round(df2, 10), 100.5);
-      report(() => round(df3, 5), -17e25);
-      report(() => round(df4, 0), 9000);
-      report(() => round(df5, 20), 2e-20);
-      report(() => round(df6, 27), 1.12e-25);
-    });
-
     it('should be reasonably fast', () => {
       // We measure speed by comparing to the speed of the native toFixed() method.
       const ref = timeIt(100000, () => (1.005).toFixed(2));
@@ -281,12 +211,103 @@ describe('DeciFloat', () => {
       const test4 = timeIt(100000, () => toFixed(1.005, 0, 1));
       assert.strictEqual(test4.result, '1');
 
-      // It takes about 4 times longer than native when rounding is needed, and about 3 times when not.
+      // It's often faster than native toFixed(), but could be up to twice slower.
       // Note that this test is very likely to be flaky.
       assert.closeTo(test1.time, ref.time, ref.time);
       assert.closeTo(test2.time, ref.time, ref.time);
       assert.closeTo(test3.time, ref.time, ref.time);
       assert.closeTo(test4.time, ref.time, ref.time);
+    });
+
+    function report<T>(func: () => T, expected: T) {
+      const N = 1000000;
+      const res = timeIt(N, func);
+      console.log("time %s us ; code %s ; result %s", ((res.time / N) * 1000000).toFixed(3), func, res.result);
+      assert.deepEqual(res.result, expected);
+    }
+
+    it('informational timings: basic string manipulations', () => {
+      const str1 = "helloWorld";
+      const str2 = str1.toUpperCase();
+      report(() => str1 + "+" + str2, "helloWorld+HELLOWORLD");
+
+      // 13 trailing zeroes
+      const c = "1234567890000000000000";
+      report(() => countTrailingZeroes(c), 13);
+      report(() => c.length - c.search(/0*$/), 13);
+
+      function countTrailingZeroes(str: string, maxZeroes: number = str.length): number {
+        const stop = str.length - maxZeroes;
+        let i = str.length - 1;
+        while (i >= stop && str[i] === '0') { --i; }
+        return str.length - 1 - i;
+      }
+
+      const d = "123.56700000000";
+      report(() => stripTrailingZeroes(d, 6), "123.56700");
+      report(() => stripTrailingZeroes(d, 10), "123.567");
+      report(() => stripWithNewRE(d, 6), "123.56700");
+      report(() => stripWithNewRE(d, 10), "123.567");
+
+
+      function stripTrailingZeroes(str: string, maxToStrip: number) {
+        const stripCount = countTrailingZeroes(str, maxToStrip);
+        return str.slice(0, str.length - stripCount);
+      }
+
+      function stripWithNewRE(s: string, maxToStrip: number) {
+        const optionalsRegExp = new RegExp('\\.?0{1,' + maxToStrip + '}$');
+        return s.replace(optionalsRegExp, '');
+      }
+    });
+
+    it('informational timings: basic string conversions', () => {
+      report(() => (1.005).toString(), "1.005");
+      report(() => (0.000000000615).toString(), "6.15e-10")
+      report(() => (615000000000000000000).toString(), "615000000000000000000");
+      report(() => (1.005).toExponential(), "1.005e+0");
+      report(() => (0.000000000615).toExponential(), "6.15e-10")
+      report(() => (615000000000000000000).toExponential(), "6.15e+20")
+      report(() => (1.005).toFixed(5), "1.00500");
+      report(() => (0.000000000615).toFixed(5), "0.00000");
+      report(() => (615000000000000000000).toFixed(5), "615000000000000000000.00000")
+    });
+
+    it('informational timings: toFixed', () => {
+      // Example with rounding
+      report(() => toFixed(1.005, 2, 2), "1.01");
+      // Example with padding with padding with zeroes
+      report(() => toFixed(1.005, 5, 5), "1.00500");
+      // Example involving exponential-notation toString(), with rounding
+      report(() => toFixed(0.0000000000615, 12, 12), "0.000000000062");
+      // Example involving exponential-notation toString(), with padding
+      report(() => toFixed(0.0000000000615, 15, 15), "0.000000000061500");
+      // Example involving a very large number
+      report(() => toFixed(615000000000000000000, 0, 0), "615000000000000000000");
+      // Example involving a very large number, with padding.
+      report(() => toFixed(615000000000000000000, 3, 3), "615000000000000000000.000");
+    });
+
+    const df1 = parseNumber(1.005), df2 = parseNumber(1.005 * 100), df3 = parseNumber(-17e25),
+          df4 = parseNumber(9000), df5 = parseNumber(170000e-25), df6 = parseNumber(1.123e-25);
+
+    it('informational timings: usefulDecimals', () => {
+      report(() => usefulDecimals(df1), 3);
+      report(() => usefulDecimals(df2), 14);
+      report(() => usefulDecimals(df3), 0);
+      report(() => usefulDecimals(df4), 0);
+      report(() => usefulDecimals(df5), 21);
+      report(() => usefulDecimals(df6), 28);
+    });
+
+    it('informational timings: round', () => {
+      report(() => round(df1, 3), 1.005);
+      report(() => round(df1, 4), 1.005);
+      report(() => round(df2, 10), 100.5);
+      report(() => round(df3, 5), -17e25);
+      report(() => round(df4, 0), 9000);
+      report(() => round(df5, 20), 2e-20);
+      report(() => round(df6, 27), 1.12e-25);
     });
   });
 });
