@@ -17,7 +17,7 @@ npm install --save decifloat
 
 ## Usage
 
-### decifloat.toFixed(num, minDecimals, maxDecimals)
+### decifloat.toFixed(num, minDecimals, maxDecimals, roundingFunc = Math.round)
 
 Formats `num` to at least `minDecimals` and at most `maxDecimals` decimal digits after the decimal point.
 
@@ -28,13 +28,6 @@ console.log(toFixed(1.005, 0, 5));    // Outputs 1.005
 console.log(toFixed(1.005, 5, 5));    // Outputs 1.00500
 console.log(toFixed(1.005, 0, 1));    // Outputs 1
 ```
-
-### new decifloat.DeciFloat(num)
-
-Mainly used to implement `toFixed()`, this parses a float into a significant and a decimal
-exponent, and maintains that representation internally. It allows scaling by a power of 10,
-determining the number of significant digits after the decimal point, and rounding to a given
-number of decimals. For details, see the documentation comments in `lib/index.ts`.
 
 # Explanation
 
@@ -54,5 +47,5 @@ This module solves this issue by scaling `"1.005"` to `"100.5"` as a string befo
 it doesn't lose precision in scaling by powers of 10, `decifloat.toFixed(1.005, 2, 2)` can
 correctly produce `"1.01"`.
 
-Beyond that, it tries to minimize string operations, and so achieves performance equivalent to
-about 3 or 4 calls of the native `toFixed()` method.
+Beyond that, it aims to be fast. In many cases (at least on node 10) it's actually faster than
+the native `toFixed()` method.
