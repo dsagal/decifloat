@@ -1,5 +1,6 @@
 # decifloat
 [![Build Status](https://travis-ci.org/dsagal/decifloat.svg?branch=master)](https://travis-ci.org/dsagal/decifloat)
+[![Coverage Status](https://coveralls.io/repos/github/dsagal/decifloat/badge.svg?branch=master)](https://coveralls.io/github/dsagal/decifloat?branch=master)
 [![npm version](https://badge.fury.io/js/decifloat.svg)](https://badge.fury.io/js/decifloat)
 
 > Format floats as decimals with expected rounding
