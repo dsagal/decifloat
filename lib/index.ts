@@ -1,72 +1,78 @@
+// Representation of a finite number as parsed in decimal notation.
+interface ParsedNumberFinite {
+  isFinite: true;
+  num: number;
+  mantissa: string;    // String part of the number until exponent.
+  exp: number;         // Decimal exponent for finite numbers.
+}
+
+// Representation of a non-finite number (NaN, +-Infinity).
+interface ParsedNumberNonFinite {
+  isFinite: false;
+  num: number;
+}
+
+// Representation of any number.
+type ParsedNumber = ParsedNumberFinite | ParsedNumberNonFinite;
+
 /**
- * Represents a floating-point number as mantissa (or significand) and a power-of-10 exponent, as
- * calculated by the native number.toExponent() method.
+ * Convert a number to its decimal representation by using toString() and parsing.
  */
-export class DeciFloat {
-  // Note that we keep mantissa as a string for speed, because we don't need to parse it.
-  public mantissa!: string|null;      // null for values like NaN and Infinity.
-  public exp!: number;                // power of 10
-  public num!: number;                // only used for values like NaN and Infinity.
-
-  constructor(num: number) {
-    this.reset(num);
-  }
-
-  /**
-   * Multiply the value in-place by the given power of 10, which must be an integer.
-   */
-  public scale(powerOf10: number): void {
-    this.exp += powerOf10;
-  }
-
-  /**
-   * Replace the stored value with a different one.
-   */
-  public reset(num: number): void {
-    this.num = num;
-    const str = num.toExponential();
+export function parseNumber(num: number): ParsedNumber {
+  if (!isFinite(num)) {
+    return {isFinite: false, num};
+  } else {
+    const str = num.toString();
     const expIndex = str.indexOf('e');
-    this.mantissa = expIndex < 0 ? null : str.slice(0, expIndex);
-    this.exp = expIndex < 0 ? NaN : parseInt(str.slice(expIndex + 1), 10);
-  }
-
-  /**
-   * Returns the stored value as a regular number.
-   */
-  public value(): number {
-    return this.mantissa === null ? this.num : parseFloat(this.mantissa + 'e' + this.exp);
-  }
-
-  /**
-   * Returns the number of significant decimal digits after the decimal point. If the number is an
-   * integer ending in zeroes, then returns a negative number for zeroes before the decimal point.
-   */
-  public usefulDecimals(): number {
-    if (this.mantissa === null) { return 0; }
-    const dotIndex = this.mantissa.indexOf('.');
-    return (dotIndex >= 0 ? this.mantissa.length - dotIndex - 1 : 0) - this.exp;
-  }
-
-  /**
-   * Round a number to the given number of decimals. E.g. round(1.45, 1) is 1.5, while round(150, -2) is 200.
-   */
-  public round(decimals: number, roundingFunc = Math.round): void {
-    if (this.usefulDecimals() > decimals) {
-      this.scale(decimals);
-      const value = roundingFunc(this.value());
-      this.reset(value);
-      if (value !== 0) {
-        this.scale(-decimals);
-      }
-    }
+    const mantissa = expIndex < 0 ? str : str.slice(0, expIndex);
+    const exp = expIndex < 0 ? 0 : parseInt(str.slice(expIndex + 1), 10);
+    return {isFinite: true, num, mantissa, exp};
   }
 }
 
 /**
- * Returns formatted number with at least minDec and at most maxDec decimal digits after the decimal point.
+ * Return the number of significant decimal digits after the decimal point. Always >= 0.
+ * E.g. usefulDecimals(parsedNumber(0.615000)) is 3.
+ */
+export function usefulDecimals(parsed: ParsedNumber): number {
+  if (!parsed.isFinite) { return 0; }
+  const dotIndex = parsed.mantissa.indexOf('.');
+  // This relies on mantissa to never include unneeded zeroes, e.g. toString() may return "100" or
+  // "1e2", but never "1000e-1".
+  const decimals = dotIndex < 0 ? 0 : parsed.mantissa.length - dotIndex - 1;
+  return Math.max(0, decimals - parsed.exp);
+}
+
+/**
+ * Round a number to a given number of decimals after the point. E.g. round(1.45, 1) is 1.5.
+ */
+export function round(parsed: ParsedNumber, decimals: number, roundingFunc = Math.round): number {
+  if (!parsed.isFinite || usefulDecimals(parsed) <= decimals) { return parsed.num; }
+  const scaled = parseFloat(parsed.mantissa + 'e' + (parsed.exp + decimals));
+  return roundingFunc(scaled) / Math.pow(10, decimals);
+}
+
+/**
+ * Returns a formatted number with at least minDec and at most maxDec decimal digits after the
+ * decimal point.
  */
 export function toFixed(num: number, minDec: number, maxDec: number, roundingFunc = Math.round): string {
-  const df = new DeciFloat(num);
-  df.round(maxDec, roundingFunc);
-  return df.value().toFixed(Math.max(df.usefulDecimals(), minDec));
+  let parsed = parseNumber(num);
+  if (usefulDecimals(parsed) > maxDec) {
+    const rounded = round(parsed, maxDec, roundingFunc);
+    parsed = parseNumber(rounded);
+  }
+  if (!parsed.isFinite) { return parsed.num.toString(); }
+
+  if (parsed.exp === 0) {
+    // It's much faster to tack on zeroes than to call toFixed() again.
+    const zeroes = minDec - usefulDecimals(parsed);
+    if (zeroes > 0) {
+      const needDot = (parsed.mantissa.indexOf('.') < 0);
+      return parsed.mantissa + (needDot ? '.' : '') + '0'.repeat(zeroes);
+    } else {
+      return parsed.mantissa;
+    }
+  }
+  return parsed.num.toFixed(Math.max(minDec, usefulDecimals(parsed)));
 }
