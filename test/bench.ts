@@ -29,7 +29,7 @@ function main() {
   const useToFixed = (val: number) => val.toFixed(8);
   const fmt = '0.0[0000000]';
   const useNumeral = (val: number) => numeral(val).format(fmt);
-  const numberFormat = new Intl.NumberFormat(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 8, useGrouping: false});
+  const numberFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 8, useGrouping: false});
   const useNumberFormat = (val: number) => numberFormat.format(val);
 
   for (const func of [useDecifloat, useToFixed, useNumeral, useNumberFormat]) {

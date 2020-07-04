@@ -50,3 +50,30 @@ correctly produce `"1.01"`.
 
 Beyond that, it aims to be fast. In many cases (at least on node 10) it's actually faster than
 the native `toFixed()` method.
+
+# Comparisons
+
+The times below were measured on a MacBook Pro. To produce them yourself, run `npm run bench-node` for node timings, or run `npm run bench-browser` and open `test/fixtures/bench.html` in a browser for browser timings.
+
+| Library / Code | Result 1 | Result 2 | Result 3 |
+| -------------- | -------: | -------: | -------: |
+decifloat.toFixed(val, 1, 8)    |           1.00000001 |           -123456.79 |           0.00000062 |
+val.toFixed(8)                  |          ⚠️1.00000000 |     -123456.79000000 |           0.00000062 |
+numeral(val).format(fmt)        |           1.00000001 |           -123456.79 |                ⚠️NaN |
+numberFormat.format(val)        |           1.00000001 |           -123456.79 |           0.00000062 |
+
+| Library / Code | Time in Node 10 (ms) | Time in Firefox | Time in Chrome | Time in Safari
+| -------------- | -------------------- | --------------- | -------------- | --------------
+decifloat.toFixed(val, 1, 8)    |0.52 us | 0.66 us | 0.60 us | 1.37 us
+val.toFixed(8)                  | 0.35 us | 0.22 us | 0.42 us | 0.13 us
+numeral(val).format(fmt)        | 2.68 us  | 3.32 us | 5.19 us | 3.66 us
+numberFormat.format(val)        | 0.78 us | 0.49 us | 0.75 us | 0.66 us
+
+Above, for `numeral`, the format `fmt` is `"0.0[0000000]"`. In the line with `numberFormat`, it is set to:
+
+```
+const numberFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 8, useGrouping: false});
+```
+
+Note that this last approach is well-supported, and similarly efficient. It may be a simpler
+approach, at least if you are sure that you have support for a suitable locale.

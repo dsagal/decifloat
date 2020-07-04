@@ -11,7 +11,9 @@
     "watch": "tsc -w",
     "test": "nyc mocha 'test/**/*.{js,ts}'",
     "test-timing": "TIMING_TESTS=1 mocha 'test/test*.{js,ts}'",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "bench-node": "ts-node test/bench.ts",
+    "bench-browser": "webpack --config test/webpack.config.js && echo 'Open test/fixtures/bench.html in a browser'"
   },
   "files": [
     "dist/"
