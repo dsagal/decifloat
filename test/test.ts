@@ -1,5 +1,6 @@
 import {assert} from 'chai';
 import {parseNumber, usefulDecimals, round, toFixed} from '../lib';
+import * as numeral from 'numeral';
 
 describe('decifloat', () => {
   const p = parseNumber;
@@ -219,11 +220,11 @@ describe('decifloat', () => {
       assert.closeTo(test4.time, ref.time, ref.time);
     });
 
-    function report<T>(func: () => T, expected: T) {
+    function report<T>(func: () => T, expected?: T) {
       const N = 1000000;
       const res = timeIt(N, func);
-      console.log("time %s us ; code %s ; result %s", ((res.time / N) * 1000000).toFixed(3), func, res.result);
-      assert.deepEqual(res.result, expected);
+      console.log("time %s us ; code %s ; result %s [%s]", ((res.time / N) * 1000000).toFixed(3), func, res.result,
+        res.result === expected ? "OK" : `WRONG (expected ${expected})`)
     }
 
     it('informational timings: basic string manipulations', () => {
@@ -273,21 +274,6 @@ describe('decifloat', () => {
       report(() => (615000000000000000000).toFixed(5), "615000000000000000000.00000")
     });
 
-    it('informational timings: toFixed', () => {
-      // Example with rounding
-      report(() => toFixed(1.005, 2, 2), "1.01");
-      // Example with padding with padding with zeroes
-      report(() => toFixed(1.005, 5, 5), "1.00500");
-      // Example involving exponential-notation toString(), with rounding
-      report(() => toFixed(0.0000000000615, 12, 12), "0.000000000062");
-      // Example involving exponential-notation toString(), with padding
-      report(() => toFixed(0.0000000000615, 15, 15), "0.000000000061500");
-      // Example involving a very large number
-      report(() => toFixed(615000000000000000000, 0, 0), "615000000000000000000");
-      // Example involving a very large number, with padding.
-      report(() => toFixed(615000000000000000000, 3, 3), "615000000000000000000.000");
-    });
-
     const df1 = parseNumber(1.005), df2 = parseNumber(1.005 * 100), df3 = parseNumber(-17e25),
           df4 = parseNumber(9000), df5 = parseNumber(170000e-25), df6 = parseNumber(1.123e-25);
 
@@ -308,6 +294,40 @@ describe('decifloat', () => {
       report(() => round(df4, 0), 9000);
       report(() => round(df5, 20), 2e-20);
       report(() => round(df6, 27), 1.12e-25);
+    });
+
+    it('informational timings: decifloat.toFixed', () => {
+      // Example with rounding
+      report(() => toFixed(1.005, 2, 2), "1.01");
+      // Example with padding with padding with zeroes
+      report(() => toFixed(1.005, 5, 5), "1.00500");
+      // Example involving exponential-notation toString(), with rounding
+      report(() => toFixed(0.0000000000615, 12, 12), "0.000000000062");
+      // Example involving exponential-notation toString(), with padding
+      report(() => toFixed(0.0000000000615, 15, 15), "0.000000000061500");
+      // Example involving a very large number
+      report(() => toFixed(615000000000000000000, 0, 0), "615000000000000000000");
+      // Example involving a very large number, with padding.
+      report(() => toFixed(615000000000000000000, 3, 3), "615000000000000000000.000");
+    });
+
+    it('informational timings: number.toFixed', () => {
+      report(() => (1.005).toFixed(2), "1.01");
+      report(() => (1.005).toFixed(5), "1.00500");
+      report(() => (0.0000000000615).toFixed(12), "0.000000000062");
+      report(() => (0.0000000000615).toFixed(15), "0.000000000061500");
+      report(() => (615000000000000000000).toFixed(0), "615000000000000000000");
+      report(() => (615000000000000000000).toFixed(3), "615000000000000000000.000");
+    });
+
+    it('informational timings: numeral.format [fixed]', function() {
+      this.timeout(20000);
+      report(() => numeral(1.005).format('0.00'), "1.01");
+      report(() => numeral(1.005).format('0.00000'), "1.00500");
+      report(() => numeral(0.0000000000615).format('0.000000000000'), "0.000000000062");
+      report(() => numeral(0.0000000000615).format('0.000000000000000'), "0.000000000061500");
+      report(() => numeral(615000000000000000000).format('0'), "615000000000000000000");
+      report(() => numeral(615000000000000000000).format('0.000'), "615000000000000000000.000");
     });
   });
 });

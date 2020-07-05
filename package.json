@@ -10,7 +10,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "nyc mocha 'test/**/*.{js,ts}'",
-    "test-timing": "TIMING_TESTS=1 mocha 'test/**/*.{js,ts}'",
+    "test-timing": "TIMING_TESTS=1 mocha 'test/test*.{js,ts}'",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "files": [
@@ -43,11 +43,16 @@
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.18",
+    "@types/numeral": "^0.0.28",
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
     "mocha": "^5.2.0",
+    "numeral": "^2.0.6",
     "nyc": "^13.1.0",
+    "ts-loader": "^7.0.5",
     "ts-node": "^7.0.1",
-    "typescript": "^3.2.2"
+    "typescript": "^3.2.2",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
   }
 }

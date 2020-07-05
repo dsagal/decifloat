@@ -1,4 +1,5 @@
 dist/
+test/fixtures/bench.bundle.js
 
 # Logs
 logs
