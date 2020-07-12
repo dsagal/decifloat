@@ -10,6 +10,10 @@ surprises with native Javascript method
 [toFixed](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed).
 It seeks to do this with minimal overhead.
 
+:warning: __Consider Intl.NumberFormat__
+
+> While the module works, the modern recommendation is to use the built-in [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat) module, which implements expected rounding with similar performance and many more options. See [Comparisons](#comparisons) below.
+
 ## Installation
 
 ```
